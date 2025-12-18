@@ -288,9 +288,9 @@ jobs:
             
             Write-Host "Screenshot saved locally to $screenshotPath"
 
-        - name: Upload Screenshot Artifact
-          uses: actions/upload-artifact@v4
-          with:
+      - name: Upload Screenshot Artifact
+        uses: actions/upload-artifact@v4
+        with:
             name: rustdesk-screenshot-${{ matrix.id }}
             path: rustdesk_${{ matrix.id }}.png
             if-no-files-found: warn
