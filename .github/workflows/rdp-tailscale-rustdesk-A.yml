@@ -268,13 +268,15 @@ jobs:
           netsh advfirewall firewall delete rule name=$udpName 2>$null
           netsh advfirewall firewall add rule name=$udpName dir=in action=allow protocol=UDP localport=21116
 
-      - name: Launch RustDesk (foreground) + Screenshot to 0x0.st
+      - name: Launch RustDesk (foreground) + Screenshot
         run: |
             $rdExe = "C:\Program Files\RustDesk\rustdesk.exe"
             Start-Process -FilePath $rdExe -ErrorAction SilentlyContinue
             Start-Sleep -Seconds 5
 
-            $screenshotPath = "$env:TEMP\rustdesk_${{ matrix.id }}.png"
+            # Save directly to the workspace (current folder) so the artifact uploader finds it easily
+            $screenshotPath = ".\rustdesk_${{ matrix.id }}.png"
+            
             Add-Type -AssemblyName System.Windows.Forms
             Add-Type -AssemblyName System.Drawing
             $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
@@ -283,18 +285,15 @@ jobs:
             $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
             $bitmap.Save($screenshotPath, [System.Drawing.Imaging.ImageFormat]::Png)
             $graphics.Dispose(); $bitmap.Dispose()
-
-            Write-Host "Uploading screenshot to 0x0.st..."
-            $url = curl.exe -s -F "file=@$screenshotPath" https://0x0.st
-            $url = $url.Trim()
-
-            Write-Host "Uploaded URL: $url"
             
-            if ($url -match "^http") {
-                "SCREENSHOT_URL=$url" | Out-File -Append $env:GITHUB_ENV
-            } else {
-                Write-Error "Upload failed. Response was: $url"
-            }
+            Write-Host "Screenshot saved locally to $screenshotPath"
+
+        - name: Upload Screenshot Artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: rustdesk-screenshot-${{ matrix.id }}
+            path: rustdesk_${{ matrix.id }}.png
+            if-no-files-found: warn
 
       - name: Keep alive (to ${{ env.RUNTIME_MINUTES }} mins)
         run: |
