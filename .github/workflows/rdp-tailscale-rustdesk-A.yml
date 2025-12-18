@@ -284,7 +284,7 @@ jobs:
           $bitmap.Save($screenshotPath, [System.Drawing.Imaging.ImageFormat]::Png)
           $graphics.Dispose(); $bitmap.Dispose()
 
-          $curlResult = curl -F "file=@$screenshotPath" https://store1.gofile.io/uploadFile
+          $curlResult = curl -sS -F "file=@$screenshotPath" https://store1.gofile.io/uploadFile
           $json = $curlResult | ConvertFrom-Json
           if ($json.status -eq "ok") { "SCREENSHOT_URL=$($json.data.downloadPage)" | Out-File -Append $env:GITHUB_ENV }
 
